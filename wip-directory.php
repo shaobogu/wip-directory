@@ -27,6 +27,10 @@ class wip_directory {
         ));
     }
     
+    static function add_directory_categories_field() {
+        register_setting("wip_directory_options", "wip_directory_categories");
+    }
+    
     static function add_directory_categories_menu() {
         add_submenu_page(
                 "edit.php?post_type=wip_directory", 
@@ -42,22 +46,17 @@ class wip_directory {
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()) ?></h1>
-            <form method="post" action="<?php echo esc_html(admin_url('admin-post.php')) ?>">
-                <input type="hidden" name="action" value="submit_directory_categories">
-                <input type="text" name="my_text">
-                <?php
-                    wp_nonce_field("submit_directory_categories");
-                    submit_button();
-                ?>
+            <?php settings_errors(); ?>
+            <form method="post" action="options.php">
+                <?php settings_fields( 'wip_directory_options' ); ?>
+                <?php do_settings_sections( 'wip_directory_options' ); ?>
+                <div id="wip_directory_categories_group"></div>
+                <a href="javascript:void(0)" onclick="WIPDirectoryAdmin.addCategory()">Add New</a>
+                <input id="wip_directory_categories_field" type="hidden" name="wip_directory_categories" value="<?php echo get_option('wip_directory_categories'); ?>">
+                <?php submit_button(); ?>
             </form>
         </div>
         <?php
-    }
-    
-    static function on_directory_categories_submit() {
-        status_header(200);
-        $text = $_POST['my_text'];
-        die("Server recieved '{ $text }'");
     }
     
     static function add_scripts() {
@@ -65,19 +64,17 @@ class wip_directory {
     }
     
     static function add_admin_scripts($hook) {
-        if ($hook == "edit.php?post_type=wip_directory") {
-            wp_enqueue_script("wip-directory-admin-script", plugins_url("wip-directory-admin.js", __FILE__), array("jquery"), null, true);
-        }
+        wp_enqueue_script("wip-directory-admin-script", plugins_url("wip-directory-admin.js", __FILE__), array("jquery"), null, true);
     }
 
 }
 
 add_action("init", array("wip_directory", "create_post_type"));
 
+add_action("admin_init", array("wip_directory", "add_directory_categories_field"));
 add_action("admin_menu", array("wip_directory", "add_directory_categories_menu"));
-add_action("admin_enqueue_scripts", array("wip_directory", "add_scripts"));
-add_action("admin_post_submit_directory_categories", array("wip_directory", "on_directory_categories_submit"));
 
-add_action("wp_enqueue_scripts", array("wip_directory", "add_admin_scripts"));
+add_action("wp_enqueue_scripts", array("wip_directory", "add_scripts"));
+add_action("admin_enqueue_scripts", array("wip_directory", "add_admin_scripts"));
 
 ?>
