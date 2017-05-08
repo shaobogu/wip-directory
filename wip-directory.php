@@ -61,12 +61,35 @@ class wip_directory {
     
     static function add_scripts() {
         wp_enqueue_script("wip-directory-script", plugins_url("wip-directory.js", __FILE__), array("wp-api"), null, true);
+        
+        global $post;
+        switch($post->post_name) {
+            case 'directory':
+                wp_enqueue_script('directory', plugins_url("directory.js", __FILE__), array('jquery'), null, true);
+                break;
+            case 'create-directory':
+                wp_enqueue_script('create-directory', plugins_url("create-directory.js", __FILE__), array('jquery'), null, true);
+                break;
+        }
     }
     
     static function add_admin_scripts($hook) {
         wp_enqueue_script("wip-directory-admin-script", plugins_url("wip-directory-admin.js", __FILE__), array("jquery"), null, true);
     }
-
+    
+    static function add_directory_category_meta() {
+        register_meta('post', 'category', $args1 = array( // Validate and sanitize the meta value.
+            // Note: currently (4.7) one of 'string', 'boolean', 'integer',
+            // 'number' must be used as 'type'. The default is 'string'.
+            'type'         => 'string',
+            // Shown in the schema for the meta key.
+            'description'  => 'Category type for wip_directory',
+            // Return a single value of the type.
+            'single'       => true,
+            // Show in the WP REST API response. Default: false.
+            'show_in_rest' => true,
+        ));
+    }
 }
 
 add_action("init", array("wip_directory", "create_post_type"));
@@ -76,5 +99,7 @@ add_action("admin_menu", array("wip_directory", "add_directory_categories_menu")
 
 add_action("wp_enqueue_scripts", array("wip_directory", "add_scripts"));
 add_action("admin_enqueue_scripts", array("wip_directory", "add_admin_scripts"));
+
+add_action("rest_api_init", array("wip_directory", "add_directory_category_meta"));
 
 ?>
